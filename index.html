@@ -1,0 +1,126 @@
+<script>
+let currentQuantity = 1;
+const quantityInput = document.getElementById('quantity');
+
+function updateQuantity(change) {
+    const newValue = Math.max(1, Math.min(99, currentQuantity + change));
+    currentQuantity = newValue;
+    quantityInput.value = currentQuantity;
+    updateButtonStates();
+}
+
+function handleManualInput() {
+    let value = parseInt(quantityInput.value) || 1;
+    value = Math.max(1, Math.min(99, value));
+    currentQuantity = value;
+    quantityInput.value = value;
+    updateButtonStates();
+}
+
+function updateButtonStates() {
+    document.querySelector('.quantity-btn.minus').disabled = currentQuantity === 1;
+    document.querySelector('.quantity-btn.plus').disabled = currentQuantity === 99;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    displayProductDetails();
+    quantityInput.addEventListener('change', handleManualInput);
+    quantityInput.addEventListener('input', handleManualInput);
+    updateButtonStates();
+});
+function displayProductDetails() {
+    const productId = getProductIdFromUrl();
+    const product = products.find(p => p.id.toString() === productId); 
+    
+    if (product) {
+        const productImage = document.getElementById('product-image');
+        productImage.src = `${product.image}`;
+        productImage.alt = product.name;
+        
+        document.getElementById('product-name').textContent = product.name;
+        document.getElementById('product-price').textContent = `${product.price}`;
+        
+    
+        document.title = `${product.name} | GreenGarden`;
+    } else {
+
+        
+        document.querySelector(".product-container").innerHTML = `
+            <div class="error-message" style="grid-column: 1/-1; text-align: center; padding: 60px 0;">
+                <h2 style="font-size: 24px; margin-bottom: 16px;">Product not found</h2>
+                <button onclick="window.location.href='products.html'" 
+                        style="padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    Browse Products
+                </button>
+            </div>`;
+    }
+}
+
+
+const products = 
+document.getElementById('product-image').onerror = function() {
+    this.src = 'placeholder.jpg'; 
+    this.alt = 'Image not available';
+};
+    function displayProductDetails() {
+        const productId = getProductIdFromUrl();
+        const product = products.find(p => p.id == productId);
+        if (product) {
+            document.getElementById("product-image").src = product.image;
+            document.getElementById("product-image").alt = product.name;
+            document.getElementById("product-name").textContent = product.name;
+            document.getElementById("product-price").textContent = product.price;
+            document.title = `${product.name} | GreenGarden`;
+        } else {
+            document.querySelector(".product-container").innerHTML = `
+                <div class="error-message" style="grid-column: 1/-1; text-align: center; padding: 60px 0;">
+                    <h2 style="font-size: 24px; margin-bottom: 16px;">Product not found</h2>
+                    <button onclick="window.location.href='products.html'" 
+                            style="padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        Browse Products
+                    </button>
+                </div>`;
+        }
+    }
+
+    function addToCart() {
+        const productId = getProductIdFromUrl();
+        const product = products.find(p => p.id == productId);
+        if (product) {
+            let cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const existingItem = cart.find(item => item.id === product.id);
+            
+            if (existingItem) {
+                existingItem.quantity = (existingItem.quantity || 1) + currentQuantity;
+            } else {
+                product.quantity = currentQuantity;
+                cart.push(product);
+            }
+            
+            localStorage.setItem("cart", JSON.stringify(cart));
+            
+            const btn = document.querySelector('.btn-secondary');
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" class="btn-icon">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                </svg>
+                Added to Cart
+            `;
+            setTimeout(() => {
+                btn.innerHTML = `
+                    <svg viewBox="0 0 24 24" class="btn-icon">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    Add to Cart
+                `;
+            }, 2000);
+        }
+    }
+
+    function buyNow() {
+        const productId = getProductIdFromUrl();
+        window.location.href = `buy.html?id=${productId}&qty=${currentQuantity}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', displayProductDetails);
+</script>
